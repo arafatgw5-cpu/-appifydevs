@@ -11,15 +11,11 @@ interface QuickActionsProps {
   className?: string;
 }
 
-/**
- * Responsive grid (2 cols on mobile, 3 on desktop) of quick action buttons.
- * Each button shows the action's accent-colored icon and a label.
- */
 export function QuickActions({ onAction, className }: QuickActionsProps) {
   return (
     <div
       className={cn(
-        "grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3",
+        "flex flex-wrap items-center justify-center gap-2.5 sm:gap-3",
         className,
       )}
     >
@@ -31,23 +27,15 @@ export function QuickActions({ onAction, className }: QuickActionsProps) {
             type="button"
             onClick={() => onAction?.(action.id)}
             className={cn(
-              "group flex items-center gap-3 rounded-xl border border-border bg-card px-3 py-3 text-left transition-all hover:-translate-y-0.5 hover:border-border hover:shadow-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              "group flex items-center gap-2 rounded-full border border-border/60 bg-background/50 px-3.5 py-2 text-sm font-medium transition-all hover:border-border hover:bg-accent/40 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
             )}
           >
-            <span
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
-              style={{ backgroundColor: action.accent + "22", color: action.accent }}
-              aria-hidden
-            >
-              <Icon className="h-4 w-4" />
-            </span>
-            <span className="min-w-0">
-              <span className="block truncate text-sm font-medium text-foreground">
-                {action.label}
-              </span>
-              <span className="block truncate text-xs text-muted-foreground">
-                Get started
-              </span>
+            <Icon 
+              className="h-3.5 w-3.5 transition-colors" 
+              style={{ color: action.accent }}
+            />
+            <span className="text-foreground/90 group-hover:text-foreground">
+              {action.label}
             </span>
           </button>
         );

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import ZAI from "z-ai-web-dev-sdk";
+
 import { AI_MODELS, getModelById } from "@/data/models";
 
 export const runtime = "nodejs";
@@ -35,18 +35,16 @@ function buildSystemPrompt(modelId?: string): string {
   if (!model) return base;
 
   const traits: Record<string, string> = {
-    "gpt-4o":
-      "You are currently acting as GPT-4o by OpenAI — versatile, balanced and fast. Be direct and well-structured.",
-    "claude-3-5-sonnet":
-      "You are currently acting as Claude 3.5 by Anthropic — thoughtful, nuanced and excellent at long-form writing and analysis. Favor clear, well-reasoned prose.",
-    "gemini-1-5-pro":
-      "You are currently acting as Gemini 1.5 by Google — capable with very large context and multimodal inputs. Be comprehensive and organized.",
-    "llama-3-1-70b":
-      "You are currently acting as Llama 3.1 by Meta — open, practical and great value. Be straightforward and useful.",
-    "deepseek-v3":
-      "You are currently acting as DeepSeek — strong at reasoning and code. Be precise and favor working code examples.",
-    "mistral-large":
-      "You are currently acting as Mistral by Mistral AI — fast, multilingual and precise. Be efficient with words.",
+    "gpt-5-5":
+      "You are currently acting as GPT-5.5 by OpenAI — the most advanced multimodal model. Be highly capable and direct.",
+    "opus-4-8":
+      "You are currently acting as Opus 4.8 by Anthropic — incredibly thoughtful and nuanced. Favor clear, extremely well-reasoned prose.",
+    "gemini-3-5-flash":
+      "You are currently acting as Gemini 3.5 Flash by Google — extremely fast with a massive context window. Be comprehensive and organized.",
+    "composer-2-5":
+      "You are currently acting as Composer 2.5 — strong at reasoning and code generation. Focus on clear, maintainable code solutions.",
+    "glm-5-2":
+      "You are currently acting as GLM 5.2 by Zhipu — highly cost-effective and strong at reasoning. Be straightforward and useful.",
   };
 
   const trait = traits[modelId] ?? `You are currently acting as ${model.name} by ${model.provider}.`;
@@ -83,18 +81,45 @@ export async function POST(req: NextRequest) {
     // Keep the conversation window reasonable (last 20 turns).
     const trimmed = sanitized.slice(-20);
 
-    const zai = await ZAI.create();
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return NextResponse.json({ error: "GEMINI_API_KEY is not set." }, { status: 500 });
+    }
 
-    const completion = await zai.chat.completions.create({
-      messages: [
-        { role: "assistant", content: buildSystemPrompt(modelId) },
-        ...trimmed,
-      ],
-      stream: false,
-      thinking: { type: thinking ? "enabled" : "disabled" },
-    });
+    const systemPrompt = buildSystemPrompt(modelId);
 
-    const reply = completion.choices?.[0]?.message?.content;
+    const geminiContents = trimmed.map((m) => ({
+      role: m.role === "assistant" ? "model" : "user",
+      parts: [{ text: m.content }],
+    }));
+
+    const response = await fetch(
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=" + apiKey,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          system_instruction: {
+            parts: { text: systemPrompt },
+          },
+          contents: geminiContents,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Gemini API error:", response.status, errorText);
+      return NextResponse.json(
+        { error: "Failed to get a response from the AI service." },
+        { status: 502 }
+      );
+    }
+
+    const data = await response.json();
+    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!reply || reply.trim().length === 0) {
       return NextResponse.json(
@@ -105,8 +130,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       content: reply,
-      modelId: modelId ?? "gpt-4o",
-      model: getModelById(modelId ?? "gpt-4o")?.name ?? "EchoGPT",
+      modelId: modelId ?? "gpt-5-5",
+      model: getModelById(modelId ?? "gpt-5-5")?.name ?? "EchoGPT",
     });
   } catch (err: unknown) {
     const message =

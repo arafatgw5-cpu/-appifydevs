@@ -8,76 +8,60 @@ import type { AIModel } from "@/types/model";
  */
 export const AI_MODELS: AIModel[] = [
   {
-    id: "gpt-4o",
-    name: "GPT-4o",
+    id: "gpt-5-5",
+    name: "GPT 5.5",
     provider: "OpenAI",
-    description:
-      "Flagship multimodal model with strong reasoning, vision and fast responses.",
+    description: "The most advanced model with reasoning, vision and fast responses.",
     capabilities: ["Reasoning", "Vision", "Multimodal", "Fast"],
     iconKey: "openai",
     accent: "#10a37f",
     badge: "Most popular",
-    contextWindow: "128K",
+    contextWindow: "256K",
   },
   {
-    id: "claude-3-5-sonnet",
-    name: "Claude 3.5",
+    id: "opus-4-8",
+    name: "Opus 4.8",
     provider: "Anthropic",
-    description:
-      "Excellent at long-form writing, analysis and nuanced conversational tasks.",
+    description: "Extremely capable for complex analysis and nuanced conversational tasks.",
     capabilities: ["Writing", "Reasoning", "Coding", "Long-context"],
     iconKey: "anthropic",
     accent: "#d97757",
     badge: "Great for writing",
-    contextWindow: "200K",
+    contextWindow: "500K",
   },
   {
-    id: "gemini-1-5-pro",
-    name: "Gemini 1.5",
+    id: "gemini-3-5-flash",
+    name: "Gemini 3.5 Flash",
     provider: "Google",
-    description:
-      "Massive context window for documents, codebases and multimodal inputs.",
+    description: "Extremely fast multimodal model with huge context window.",
     capabilities: ["Long-context", "Vision", "Multimodal", "Fast"],
-    iconKey: "google",
+    iconKey: "gemini",
     accent: "#4285f4",
-    contextWindow: "1M",
+    contextWindow: "2M",
   },
   {
-    id: "llama-3-1-70b",
-    name: "Llama 3.1",
-    provider: "Meta",
-    description:
-      "Open-weights model with strong general performance and great value.",
-    capabilities: ["Reasoning", "Coding", "Fast"],
-    iconKey: "meta",
-    accent: "#0866ff",
+    id: "composer-2-5",
+    name: "Composer 2.5",
+    provider: "Cursor",
+    description: "Cost-effective model with impressive code generation.",
+    capabilities: ["Reasoning", "Coding"],
+    iconKey: "composer",
+    accent: "#6c6c6c",
     contextWindow: "128K",
   },
   {
-    id: "deepseek-v3",
-    name: "DeepSeek",
-    provider: "DeepSeek",
-    description:
-      "Cost-effective model with impressive reasoning and code generation.",
+    id: "glm-5-2",
+    name: "GLM 5.2",
+    provider: "Zhipu",
+    description: "Cost-effective model with impressive reasoning.",
     capabilities: ["Reasoning", "Coding"],
-    iconKey: "deepseek",
+    iconKey: "glm",
     accent: "#4d6bfe",
-    contextWindow: "64K",
-  },
-  {
-    id: "mistral-large",
-    name: "Mistral",
-    provider: "Mistral AI",
-    description:
-      "European frontier model focused on speed, precision and multilingual tasks.",
-    capabilities: ["Fast", "Writing", "Reasoning"],
-    iconKey: "mistral",
-    accent: "#ff7000",
     contextWindow: "128K",
   },
 ];
 
-export const DEFAULT_MODEL_ID = "gpt-4o";
+export const DEFAULT_MODEL_ID = "gpt-5-5";
 
 export function getModelById(id: string): AIModel | undefined {
   return AI_MODELS.find((m) => m.id === id);

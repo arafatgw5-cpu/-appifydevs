@@ -126,14 +126,14 @@ export function ChatMessage({ message, className }: ChatMessageProps) {
   if (isUser) {
     return (
       <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+        initial={{ opacity: 0, y: 12, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.4, ease: [0.175, 0.885, 0.32, 1.275] }}
         className={cn("flex justify-end", className)}
       >
-        <div className="max-w-[85%] rounded-2xl rounded-tr-sm bg-primary/10 px-4 py-2.5 text-sm text-foreground shadow-soft sm:max-w-[75%]">
+        <div className="max-w-[85%] rounded-3xl rounded-tr-sm bg-muted/80 px-4 py-3 text-[15px] text-foreground shadow-sm sm:max-w-[75%] border border-border/40 backdrop-blur-md">
           <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
-          <div className="mt-1.5 text-right text-[11px] text-muted-foreground">
+          <div className="mt-1.5 text-right text-[11px] font-medium text-muted-foreground/60">
             {message.createdAt}
           </div>
         </div>
@@ -143,17 +143,17 @@ export function ChatMessage({ message, className }: ChatMessageProps) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-      className={cn("flex w-full gap-3", className)}
+      initial={{ opacity: 0, y: 12, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.4, ease: [0.175, 0.885, 0.32, 1.275] }}
+      className={cn("group flex w-full gap-4", className)}
     >
       <div
-        className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border"
+        className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-border/50 shadow-sm transition-transform duration-300 ease-[cubic-bezier(0.175,0.885,0.32,1.275)] group-hover:scale-110"
         style={
           model
-            ? { backgroundColor: model.accent + "22", color: model.accent }
-            : undefined
+            ? { backgroundColor: model.accent + "1A", color: model.accent }
+            : { backgroundColor: "hsl(var(--muted))" }
         }
         aria-hidden
       >
@@ -164,35 +164,35 @@ export function ChatMessage({ message, className }: ChatMessageProps) {
         )}
       </div>
       <div className="min-w-0 flex-1">
-        <div className="mb-1 flex items-center gap-2">
+        <div className="mb-1.5 flex items-center gap-2.5">
           <span className="text-sm font-semibold text-foreground">
             {model?.name ?? "Assistant"}
           </span>
           {model ? (
-            <span className="text-[11px] text-muted-foreground">
+            <span className="text-[11px] font-medium text-muted-foreground/70">
               {model.provider}
             </span>
           ) : null}
-          <span className="ml-auto text-[11px] text-muted-foreground">
+          <span className="ml-auto text-[11px] font-medium text-muted-foreground/50 transition-opacity duration-300 opacity-0 group-hover:opacity-100">
             {message.createdAt}
           </span>
         </div>
-        <div className="text-sm">{renderContent(message.content)}</div>
+        <div className="text-[15px] leading-relaxed">{renderContent(message.content)}</div>
 
         {/* Action row */}
-        <div className="mt-2.5 flex items-center gap-1">
+        <div className="mt-3 flex items-center gap-1 opacity-0 transition-opacity duration-300 group-hover:opacity-100 focus-within:opacity-100">
           <Tooltip>
             <TooltipTrigger asChild>
               <button
                 type="button"
                 onClick={handleCopy}
                 aria-label="Copy message"
-                className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground/70 transition-all duration-300 hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 {copied ? (
-                  <Check className="h-3.5 w-3.5 text-primary" />
+                  <Check className="h-4 w-4 text-primary" />
                 ) : (
-                  <Copy className="h-3.5 w-3.5" />
+                  <Copy className="h-4 w-4" />
                 )}
               </button>
             </TooltipTrigger>
@@ -204,9 +204,9 @@ export function ChatMessage({ message, className }: ChatMessageProps) {
               <button
                 type="button"
                 aria-label="Regenerate response"
-                className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground/70 transition-all duration-300 hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
-                <RotateCcw className="h-3.5 w-3.5" />
+                <RotateCcw className="h-4 w-4" />
               </button>
             </TooltipTrigger>
             <TooltipContent>Regenerate</TooltipContent>
@@ -220,13 +220,13 @@ export function ChatMessage({ message, className }: ChatMessageProps) {
                 aria-pressed={feedback === "up"}
                 onClick={() => setFeedback(feedback === "up" ? null : "up")}
                 className={cn(
-                  "inline-flex h-7 w-7 items-center justify-center rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                  "inline-flex h-8 w-8 items-center justify-center rounded-full transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                   feedback === "up"
                     ? "bg-primary/10 text-primary"
-                    : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                    : "text-muted-foreground/70 hover:bg-accent hover:text-foreground",
                 )}
               >
-                <ThumbsUp className="h-3.5 w-3.5" />
+                <ThumbsUp className="h-4 w-4" />
               </button>
             </TooltipTrigger>
             <TooltipContent>Good response</TooltipContent>
@@ -240,13 +240,13 @@ export function ChatMessage({ message, className }: ChatMessageProps) {
                 aria-pressed={feedback === "down"}
                 onClick={() => setFeedback(feedback === "down" ? null : "down")}
                 className={cn(
-                  "inline-flex h-7 w-7 items-center justify-center rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                  "inline-flex h-8 w-8 items-center justify-center rounded-full transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                   feedback === "down"
                     ? "bg-destructive/10 text-destructive"
-                    : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                    : "text-muted-foreground/70 hover:bg-accent hover:text-foreground",
                 )}
               >
-                <ThumbsDown className="h-3.5 w-3.5" />
+                <ThumbsDown className="h-4 w-4" />
               </button>
             </TooltipTrigger>
             <TooltipContent>Bad response</TooltipContent>

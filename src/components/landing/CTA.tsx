@@ -12,12 +12,12 @@ export function CTA() {
 
   return (
     <section
-      className="relative py-20 sm:py-24 lg:py-28"
+      className="relative py-12"
       aria-labelledby="cta-heading"
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <Reveal>
-          <div className="relative overflow-hidden rounded-3xl border border-border bg-card/70 px-6 py-14 shadow-soft-lg sm:px-12 lg:px-20 lg:py-20">
+          <div className="relative overflow-hidden rounded-3xl border border-border bg-card/70 px-6 py-12 shadow-soft-lg sm:px-12 lg:px-20">
             {/* Subtle gradient mesh */}
             <div className="pointer-events-none absolute inset-0 -z-10">
               <div className="absolute left-1/2 top-[-180px] h-[420px] w-[820px] -translate-x-1/2 rounded-full bg-[color-mix(in_oklch,var(--primary)_12%,transparent)] blur-[120px]" />

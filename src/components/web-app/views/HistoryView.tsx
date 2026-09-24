@@ -13,10 +13,10 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { RECENT_CHATS } from "@/data/chats";
 import { getModelById } from "@/data/models";
-import type { Conversation, ConversationCategory } from "@/types/chat";
+import type { ConversationCategory } from "@/types/chat";
 import { useNavigation } from "@/store/navigation";
+import { useChatStore } from "@/store/chat";
 import { EmptyState } from "@/components/web-app/EmptyState";
 import { ModelIcon } from "@/components/shared/Logo";
 import { Button } from "@/components/ui/button";
@@ -50,27 +50,39 @@ const CATEGORY_ORDER: ConversationCategory[] = [
 
 export function HistoryView({ search, onSearchChange }: HistoryViewProps) {
   const { setWebAppTab } = useNavigation();
+  const { 
+    conversations: storeConversations, 
+    renameConversation, 
+    deleteConversation,
+    loadConversation,
+    clearAllHistory
+  } = useChatStore();
+
   const [filter, setFilter] = React.useState<Filter>("all");
-  const [renamed, setRenamed] = React.useState<Record<string, string>>({});
-  const [deleted, setDeleted] = React.useState<Record<string, boolean>>({});
   const [renamingId, setRenamingId] = React.useState<string | null>(null);
   const [renameDraft, setRenameDraft] = React.useState("");
-  const [selectedId, setSelectedId] = React.useState<string | null>(
-    () => RECENT_CHATS[0]?.id ?? null,
-  );
+  const [selectedId, setSelectedId] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (storeConversations.length > 0 && !selectedId) {
+      setSelectedId(storeConversations[0].id);
+    }
+  }, [storeConversations, selectedId]);
 
   const conversations = React.useMemo(() => {
-    return RECENT_CHATS.map((c) => ({
+    return storeConversations.map(c => ({
       ...c,
-      title: renamed[c.id] ?? c.title,
-      hidden: !!deleted[c.id],
+      preview: "Conversation", // mock preview
+      pinned: false,
+      category: "Older" as ConversationCategory,
+      messageCount: 0,
+      modelId: "gpt-4",
     }));
-  }, [renamed, deleted]);
+  }, [storeConversations]);
 
   const filtered = React.useMemo(() => {
     const q = search.trim().toLowerCase();
     return conversations.filter((c) => {
-      if (c.hidden) return false;
       if (filter === "pinned" && !c.pinned) return false;
       if (filter === "today" && c.category !== "Today") return false;
       if (filter === "yesterday" && c.category !== "Yesterday") return false;
@@ -92,18 +104,18 @@ export function HistoryView({ search, onSearchChange }: HistoryViewProps) {
     return map;
   }, [filtered]);
 
-  const selected = React.useMemo<Conversation | null>(() => {
-    return conversations.find((c) => c.id === selectedId && !c.hidden) ?? null;
+  const selected = React.useMemo(() => {
+    return conversations.find((c) => c.id === selectedId) ?? null;
   }, [conversations, selectedId]);
 
-  const startRename = (c: Conversation) => {
+  const startRename = (c: any) => {
     setRenamingId(c.id);
     setRenameDraft(c.title);
   };
 
   const commitRename = () => {
     if (renamingId && renameDraft.trim()) {
-      setRenamed((prev) => ({ ...prev, [renamingId]: renameDraft.trim() }));
+      renameConversation(renamingId, renameDraft.trim());
     }
     setRenamingId(null);
     setRenameDraft("");
@@ -115,8 +127,15 @@ export function HistoryView({ search, onSearchChange }: HistoryViewProps) {
   };
 
   const handleDelete = (id: string) => {
-    setDeleted((prev) => ({ ...prev, [id]: true }));
-    if (selectedId === id) {
+    if (confirm("Are you sure you want to delete this conversation?")) {
+      deleteConversation(id);
+      if (selectedId === id) setSelectedId(null);
+    }
+  };
+
+  const handleClearAll = () => {
+    if (confirm("Are you sure you want to delete ALL conversations? This cannot be undone.")) {
+      clearAllHistory();
       setSelectedId(null);
     }
   };
@@ -139,23 +158,36 @@ export function HistoryView({ search, onSearchChange }: HistoryViewProps) {
       </div>
 
       {/* Filters */}
-      <div className="flex items-center gap-1.5 overflow-x-auto border-b border-border px-4 py-2.5 sm:px-6">
-        {FILTERS.map((f) => (
-          <button
-            key={f.id}
-            type="button"
-            onClick={() => setFilter(f.id)}
-            aria-pressed={filter === f.id}
-            className={cn(
-              "rounded-full px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-              filter === f.id
-                ? "bg-primary text-primary-foreground"
-                : "border border-border bg-background text-muted-foreground hover:bg-accent hover:text-foreground",
-            )}
+      <div className="flex items-center justify-between border-b border-border px-4 py-2.5 sm:px-6">
+        <div className="flex items-center gap-1.5 overflow-x-auto">
+          {FILTERS.map((f) => (
+            <button
+              key={f.id}
+              type="button"
+              onClick={() => setFilter(f.id)}
+              aria-pressed={filter === f.id}
+              className={cn(
+                "rounded-full px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                filter === f.id
+                  ? "bg-primary text-primary-foreground"
+                  : "border border-border bg-background text-muted-foreground hover:bg-accent hover:text-foreground",
+              )}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+        
+        {storeConversations.length > 0 && (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={handleClearAll}
+            className="text-red-500 hover:text-red-600 hover:bg-red-500/10 shrink-0 ml-4"
           >
-            {f.label}
-          </button>
-        ))}
+            Clear All
+          </Button>
+        )}
       </div>
 
       <div className="grid flex-1 min-h-0 grid-cols-1 lg:grid-cols-[1fr_360px]">
@@ -283,7 +315,7 @@ export function HistoryView({ search, onSearchChange }: HistoryViewProps) {
                                 </div>
                               </div>
                               {!isRenaming ? (
-                                <div className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+                                <div className="flex shrink-0 items-center gap-0.5 opacity-100 md:opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
                                   <button
                                     type="button"
                                     aria-label="Rename conversation"
@@ -368,7 +400,10 @@ export function HistoryView({ search, onSearchChange }: HistoryViewProps) {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setWebAppTab("chat")}
+                      onClick={() => {
+                        loadConversation(selected.id);
+                        setWebAppTab("chat");
+                      }}
                       className="w-full"
                     >
                       Open in chat
@@ -388,20 +423,7 @@ export function HistoryView({ search, onSearchChange }: HistoryViewProps) {
         </div>
       </div>
 
-      {/* Slide-down deleted undo indicator (purely visual) */}
-      <AnimatePresence>
-        {Object.keys(deleted).length > 0 ? (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 10 }}
-            className="pointer-events-none fixed bottom-4 left-1/2 -translate-x-1/2 rounded-full border border-border bg-background/90 px-3 py-1.5 text-xs text-muted-foreground shadow-soft backdrop-blur"
-          >
-            {Object.keys(deleted).length} conversation
-            {Object.keys(deleted).length > 1 ? "s" : ""} removed (demo only)
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
+
     </div>
   );
 }

@@ -26,4 +26,7 @@ export type ModelIconKey =
   | "meta"
   | "deepseek"
   | "mistral"
-  | "groq";
+  | "groq"
+  | "gemini"
+  | "composer"
+  | "glm";

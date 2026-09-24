@@ -41,7 +41,7 @@ export function ProductPreview() {
   return (
     <section
       id="product"
-      className="relative scroll-mt-24 py-20 sm:py-24 lg:py-28"
+      className="relative scroll-mt-12 py-12"
       aria-labelledby="product-heading"
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

@@ -62,14 +62,14 @@ export function HomeView() {
           transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
           className="text-center"
         >
-          <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-            {greeting}, Arafat!{" "}
-            <span aria-hidden className="inline-block">
+          <h1 className="text-2xl font-medium tracking-tight text-foreground sm:text-3xl">
+            {greeting}, Arafat{" "}
+            <span aria-hidden className="inline-block opacity-80">
               👋
             </span>
           </h1>
-          <p className="mt-2 text-base text-muted-foreground">
-            How can I help you today?
+          <p className="mt-2.5 text-[15px] text-muted-foreground/80">
+            What would you like to work on today?
           </p>
         </motion.div>
 

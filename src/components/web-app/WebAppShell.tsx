@@ -3,6 +3,7 @@
 import * as React from "react";
 
 import { useNavigation } from "@/store/navigation";
+import { useChatStore } from "@/store/chat";
 import { Sidebar } from "@/components/web-app/Sidebar";
 import { Topbar } from "@/components/web-app/Topbar";
 import { HomeView } from "@/components/web-app/views/HomeView";
@@ -21,8 +22,14 @@ import { SettingsView } from "@/components/web-app/views/SettingsView";
  */
 export function WebAppShell() {
   const { webAppTab } = useNavigation();
+  const initStore = useChatStore(s => s.initStore);
   const [mobileSidebarOpen, setMobileSidebarOpen] = React.useState(false);
   const [historySearch, setHistorySearch] = React.useState("");
+
+  // Initialize IndexedDB Chat history on mount
+  React.useEffect(() => {
+    initStore();
+  }, [initStore]);
 
   // Close the mobile sidebar whenever the active tab changes.
   React.useEffect(() => {

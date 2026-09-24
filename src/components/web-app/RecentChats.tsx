@@ -1,11 +1,11 @@
 "use client";
 
 import * as React from "react";
-import { MessageSquare, Pin } from "lucide-react";
+import { MessageSquare, Pin, Trash2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { RECENT_CHATS } from "@/data/chats";
 import { Card } from "@/components/ui/card";
+import { useChatStore } from "@/store/chat";
 
 interface RecentChatsProps {
   /** Limit the number of chats shown (default: all). */
@@ -26,44 +26,62 @@ export function RecentChats({
   showHeader = true,
   asCard = true,
 }: RecentChatsProps) {
+  const storeConversations = useChatStore(s => s.conversations);
+  const deleteConversation = useChatStore(s => s.deleteConversation);
+  
   const chats = React.useMemo(() => {
-    const sorted = [...RECENT_CHATS].sort((a, b) => {
-      // Pinned first
-      if (!!b.pinned !== !!a.pinned) return (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0);
-      return 0;
+    // Sort logic by updatedAt is already handled in store/db, but we can double check
+    const sorted = [...storeConversations].sort((a, b) => {
+      return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
     });
     return typeof limit === "number" ? sorted.slice(0, limit) : sorted;
-  }, [limit]);
+  }, [storeConversations, limit]);
 
   const content = (
-    <ul className="divide-y divide-border">
+    <ul className="divide-y divide-border/50">
       {chats.map((c) => (
         <li key={c.id}>
-          <button
-            type="button"
+          <div
+            role="button"
+            tabIndex={0}
             onClick={() => onSelect?.(c.id)}
-            className="group flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-accent/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onSelect?.(c.id);
+              }
+            }}
+            className="group flex w-full items-center gap-3 px-3.5 py-3 text-left transition-colors duration-300 ease-[cubic-bezier(0.175,0.885,0.32,1.275)] hover:bg-accent/30 focus-visible:outline-none focus-visible:bg-accent/30"
           >
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground transition-colors group-hover:bg-background group-hover:text-foreground">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-muted/60 text-muted-foreground transition-all duration-300 ease-[cubic-bezier(0.175,0.885,0.32,1.275)] group-hover:bg-primary/10 group-hover:text-primary group-hover:scale-105">
               <MessageSquare className="h-4 w-4" />
             </span>
             <span className="min-w-0 flex-1">
               <span className="flex items-center gap-1.5">
-                {c.pinned ? (
-                  <Pin className="h-3 w-3 shrink-0 text-primary" aria-label="Pinned" />
-                ) : null}
-                <span className="truncate text-sm font-medium text-foreground">
+                <span className="truncate text-sm font-medium text-foreground transition-colors group-hover:text-foreground">
                   {c.title}
                 </span>
               </span>
-              <span className="mt-0.5 block truncate text-xs text-muted-foreground">
-                {c.preview}
+              <span className="mt-0.5 block truncate text-xs text-muted-foreground/80">
+                {new Date(c.updatedAt).toLocaleDateString()}
               </span>
             </span>
-            <span className="shrink-0 text-xs text-muted-foreground">
-              {c.updatedAt}
-            </span>
-          </button>
+            <div className="flex shrink-0 items-center opacity-100 md:opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (confirm("Are you sure you want to delete this conversation?")) {
+                    deleteConversation(c.id);
+                  }
+                }}
+                className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                aria-label="Delete chat"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          </div>
         </li>
       ))}
     </ul>
@@ -73,7 +91,7 @@ export function RecentChats({
     return (
       <div className={className}>
         {showHeader ? (
-          <h2 className="mb-2 text-sm font-semibold text-foreground">
+          <h2 className="mb-2 text-sm font-medium text-foreground">
             Recent chats
           </h2>
         ) : null}
@@ -83,14 +101,14 @@ export function RecentChats({
   }
 
   return (
-    <Card className={cn("gap-0 overflow-hidden p-0", className)}>
+    <div className={cn("overflow-hidden rounded-2xl border border-border/60 bg-background/40 shadow-sm backdrop-blur-xl transition-all duration-300 hover:border-border/80", className)}>
       {showHeader ? (
-        <div className="flex items-center justify-between border-b border-border px-4 py-3">
-          <h2 className="text-sm font-semibold text-foreground">Recent chats</h2>
-          <span className="text-xs text-muted-foreground">{chats.length}</span>
+        <div className="flex items-center justify-between border-b border-border/50 px-4 py-3 bg-muted/20">
+          <h2 className="text-sm font-medium text-foreground">Recent chats</h2>
+          <span className="text-xs text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded-md">{chats.length}</span>
         </div>
       ) : null}
       {content}
-    </Card>
+    </div>
   );
 }

@@ -85,103 +85,34 @@ export function ModelIcon({ iconKey, size = 24, className }: ModelIconProps) {
   const common = {
     width: size,
     height: size,
-    viewBox: "0 0 24 24",
-    fill: "none",
     className,
     "aria-hidden": true as const,
   };
 
-  switch (iconKey) {
-    case "openai":
-      return (
-        <svg {...common}>
-          <path
-            d="M12 3l7 4v8l-7 4-7-4V7l7-4z"
-            stroke="currentColor"
-            strokeWidth="1.6"
-            strokeLinejoin="round"
-          />
-          <circle cx="12" cy="11" r="2.4" stroke="currentColor" strokeWidth="1.6" />
-        </svg>
-      );
-    case "anthropic":
-      return (
-        <svg {...common}>
-          <path
-            d="M7 5l5 14M17 5l-5 14"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-          />
-          <path d="M9.5 9h5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-        </svg>
-      );
-    case "google":
-      return (
-        <svg {...common}>
-          <path
-            d="M12 4a8 8 0 1 0 6.5 12.5"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-          />
-          <path
-            d="M12 12h7v-1a7 7 0 0 0-7-7"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-          />
-        </svg>
-      );
-    case "meta":
-      return (
-        <svg {...common}>
-          <path
-            d="M4 8c2-3 5-3 7 0 2 3 5 3 7 0M4 16c2-3 5-3 7 0 2 3 5 3 7 0"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-          />
-        </svg>
-      );
-    case "deepseek":
-      return (
-        <svg {...common}>
-          <path
-            d="M5 12h6l3-4 4 8-4 4H8l-3-4z"
-            stroke="currentColor"
-            strokeWidth="1.6"
-            strokeLinejoin="round"
-          />
-        </svg>
-      );
-    case "mistral":
-      return (
-        <svg {...common}>
-          <rect x="4" y="5" width="4" height="4" fill="currentColor" />
-          <rect x="10" y="5" width="4" height="4" fill="currentColor" opacity="0.7" />
-          <rect x="16" y="5" width="4" height="4" fill="currentColor" opacity="0.5" />
-          <rect x="7" y="11" width="4" height="4" fill="currentColor" opacity="0.85" />
-          <rect x="13" y="11" width="4" height="4" fill="currentColor" opacity="0.6" />
-          <rect x="10" y="17" width="4" height="4" fill="currentColor" opacity="0.75" />
-        </svg>
-      );
-    case "groq":
-      return (
-        <svg {...common}>
-          <path
-            d="M13 4L4 14h6l-1 6 9-10h-6l1-6z"
-            stroke="currentColor"
-            strokeWidth="1.6"
-            strokeLinejoin="round"
-          />
-        </svg>
-      );
-    default:
-      return (
-        <svg {...common}>
-          <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="1.6" />
-        </svg>
-      );
+  const cdnIcons: Partial<Record<ModelIconKey, string>> = {
+    openai: "https://cdn.21st.dev/assets/mirror/b9/b93fa7942be639a1dae60194ff12141145d7d9fd59581582d6ff23335755f19c.svg",
+    anthropic: "https://cdn.21st.dev/assets/mirror/5d/5de1221c77cc91e748066fd642ad0eee1c1fa65328814f5178166f901e599709.svg",
+    gemini: "https://cdn.21st.dev/assets/mirror/cd/cda2df6631d5fa227de3fa04ed78cf354f910ba92a9f086e7455655c10ad9d09.svg",
+    composer: "https://cdn.21st.dev/assets/mirror/7d/7dc00bc09f225fcda46cbc9c6b669c69c025a231877d6c17baa6a003f04f02b2.svg",
+    glm: "https://cdn.21st.dev/assets/mirror/b2/b2a6c0ff63efd8a555edf8a174ea6fcfeca120ac1595a2d461ca11d3ae89276c.svg"
+  };
+
+  if (cdnIcons[iconKey]) {
+    return (
+      <img
+        src={cdnIcons[iconKey]}
+        alt={iconKey}
+        width={size}
+        height={size}
+        className={cn("object-contain", iconKey === "openai" ? "dark:invert" : "", className)}
+      />
+    );
   }
+
+  // Fallback generic SVG
+  return (
+    <svg viewBox="0 0 24 24" fill="none" {...common}>
+      <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="1.6" />
+    </svg>
+  );
 }

@@ -39,6 +39,13 @@ export const useNavigation = create<NavigationState>((set, get) => ({
   setView: (view) => {
     set({ view });
     if (typeof window !== "undefined") {
+      if (view === "app" && window.location.pathname !== "/app") {
+        window.location.href = "/app";
+        return;
+      } else if (view === "landing" && window.location.pathname !== "/") {
+        window.location.href = "/";
+        return;
+      }
       window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
     }
   },
@@ -46,6 +53,10 @@ export const useNavigation = create<NavigationState>((set, get) => ({
   setWebAppTab: (webAppTab) => {
     set({ view: "app", webAppTab });
     if (typeof window !== "undefined") {
+      if (window.location.pathname !== "/app") {
+        window.location.href = "/app";
+        return;
+      }
       window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
     }
   },

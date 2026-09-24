@@ -3,35 +3,43 @@
 import { create } from "zustand";
 import { DEFAULT_MODEL_ID } from "@/data/models";
 import type { ChatMessage } from "@/types/chat";
+import { ChatStorage, ConversationMeta } from "./chatStorage";
 
 interface ChatState {
   activeModelId: string;
   setActiveModelId: (id: string) => void;
 
-  /** Live conversation messages shared across the web app + extension popup. */
+  activeConversationId: string | null;
+  conversations: ConversationMeta[];
   messages: ChatMessage[];
-  /** True while waiting for the AI response. */
+  
   isStreaming: boolean;
-  /** Last error message, if any. */
   error: string | null;
-  /** Incremented each time a new chat is requested. */
-  newChatToken: number;
 
-  /** Send a user message and fetch the AI reply. */
-  sendMessage: (text: string) => Promise<void>;
-  /** Clear the conversation (keep the active model). */
-  clearConversation: () => void;
-  /** Request a new chat — clears conversation and bumps the token. */
+  // Initialize store (load conversations list)
+  initStore: () => Promise<void>;
+  
+  // Load a specific conversation
+  loadConversation: (id: string) => Promise<void>;
+  
+  // Start a new chat (lazily creates in DB on first message)
   newChat: () => void;
-  /** Clear any error state. */
+  
+  // Delete a conversation
+  deleteConversation: (id: string) => Promise<void>;
+  
+  // Update title
+  renameConversation: (id: string, title: string) => Promise<void>;
+
+  // Clear everything
+  clearAllHistory: () => Promise<void>;
+
+  sendMessage: (text: string) => Promise<void>;
   clearError: () => void;
 }
 
 function nowTime(): string {
-  return new Date().toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return new Date().toISOString();
 }
 
 function uid(prefix: string): string {
@@ -42,35 +50,155 @@ export const useChatStore = create<ChatState>((set, get) => ({
   activeModelId: DEFAULT_MODEL_ID,
   setActiveModelId: (id) => set({ activeModelId: id }),
 
+  activeConversationId: null,
+  conversations: [],
   messages: [],
   isStreaming: false,
   error: null,
-  newChatToken: 0,
+
+  initStore: async () => {
+    try {
+      const conversations = await ChatStorage.getConversations();
+      set({ conversations });
+      if (conversations.length > 0) {
+        // Load the most recent conversation automatically
+        get().loadConversation(conversations[0].id);
+      } else {
+        get().newChat();
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  },
+
+  loadConversation: async (id: string) => {
+    set({ isStreaming: true }); // show loading state briefly
+    try {
+      const messages = await ChatStorage.getMessages(id);
+      set({ activeConversationId: id, messages, isStreaming: false, error: null });
+    } catch (e) {
+      set({ error: "Failed to load conversation.", isStreaming: false });
+    }
+  },
+
+  newChat: () => {
+    // We just reset the active state. The actual DB creation happens on the first message.
+    set({
+      activeConversationId: null,
+      messages: [],
+      error: null,
+      isStreaming: false,
+    });
+  },
+
+  deleteConversation: async (id: string) => {
+    try {
+      await ChatStorage.deleteConversation(id);
+      const conversations = get().conversations.filter(c => c.id !== id);
+      
+      set({ conversations });
+      
+      if (get().activeConversationId === id) {
+        if (conversations.length > 0) {
+          get().loadConversation(conversations[0].id);
+        } else {
+          get().newChat();
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  },
+
+  renameConversation: async (id: string, title: string) => {
+    try {
+      const conv = get().conversations.find(c => c.id === id);
+      if (conv) {
+        const updated = { ...conv, title, updatedAt: new Date().toISOString() };
+        await ChatStorage.updateConversationMeta(updated);
+        set(s => ({
+          conversations: s.conversations.map(c => c.id === id ? updated : c)
+        }));
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  },
+
+  clearAllHistory: async () => {
+    try {
+      await ChatStorage.clearAll();
+      set({ conversations: [] });
+      get().newChat();
+    } catch (e) {
+      console.error(e);
+    }
+  },
 
   sendMessage: async (text) => {
     const trimmed = text.trim();
     if (!trimmed) return;
-
-    // Don't allow concurrent sends.
     if (get().isStreaming) return;
 
-    const modelId = get().activeModelId;
+    let { activeConversationId, conversations, messages, activeModelId } = get();
+    const isNew = !activeConversationId;
+
+    // 1. If it's a new conversation, set it up
+    if (isNew) {
+      activeConversationId = uid("c");
+      const newMeta: ConversationMeta = {
+        id: activeConversationId,
+        title: "New Chat", // will be updated below
+        createdAt: nowTime(),
+        updatedAt: nowTime()
+      };
+      try {
+        await ChatStorage.createConversation(newMeta);
+        conversations = [newMeta, ...conversations];
+        set({ activeConversationId, conversations });
+      } catch (e) {
+        set({ error: "Storage error. Could not create conversation." });
+        return;
+      }
+    }
+
+    // 2. Append User Message
     const userMsg: ChatMessage = {
       id: uid("u"),
       role: "user",
       content: trimmed,
       createdAt: nowTime(),
     };
-
+    
+    // Optimistic UI update
     set((s) => ({
       messages: [...s.messages, userMsg],
       isStreaming: true,
       error: null,
     }));
 
+    // Async DB update
+    const titleToUpdate = isNew ? trimmed : undefined;
     try {
-      // Send only role + content to the backend.
-      const payload = [...get().messages].map((m) => ({
+      await ChatStorage.appendMessage(activeConversationId!, userMsg, titleToUpdate);
+      if (titleToUpdate) {
+        // Update title in store instantly
+        set(s => ({
+          conversations: s.conversations.map(c => 
+            c.id === activeConversationId 
+              ? { ...c, title: titleToUpdate.slice(0, 40) + (titleToUpdate.length > 40 ? '...' : '') } 
+              : c
+          )
+        }));
+      }
+    } catch (e: any) {
+      console.error(e);
+      set({ error: "Warning: Failed to save message to local history. Storage may be full." });
+    }
+
+    // 3. Fetch AI Response
+    try {
+      const payload = get().messages.map((m) => ({
         role: m.role === "user" ? "user" : "assistant",
         content: m.content,
       }));
@@ -78,7 +206,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: payload, modelId }),
+        body: JSON.stringify({ messages: payload, modelId: activeModelId }),
       });
 
       if (!res.ok) {
@@ -86,57 +214,65 @@ export const useChatStore = create<ChatState>((set, get) => ({
         try {
           const data = await res.json();
           if (data?.error) errorMsg = data.error;
-        } catch {
-          // ignore parse errors
-        }
+        } catch {}
         throw new Error(errorMsg);
       }
 
       const data = (await res.json()) as {
         content: string;
         modelId: string;
-        model?: string;
       };
 
+      // 4. Append AI Message
       const assistantMsg: ChatMessage = {
         id: uid("a"),
         role: "assistant",
         content: data.content,
-        modelId: data.modelId ?? modelId,
+        modelId: data.modelId ?? activeModelId,
         createdAt: nowTime(),
       };
 
       set((s) => ({
         messages: [...s.messages, assistantMsg],
         isStreaming: false,
-        error: null,
       }));
+
+      // Async DB update
+      try {
+        await ChatStorage.appendMessage(activeConversationId!, assistantMsg);
+        // Move to top of conversations list
+        set(s => {
+          const c = s.conversations.find(c => c.id === activeConversationId);
+          if (!c) return s;
+          const filtered = s.conversations.filter(c => c.id !== activeConversationId);
+          return { conversations: [{ ...c, updatedAt: nowTime() }, ...filtered] };
+        });
+      } catch (e: any) {
+        console.error(e);
+        set({ error: "Warning: Failed to save message to local history. Storage may be full." });
+      }
+
     } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : "Unexpected error.";
-      // Append a short assistant error note so the user sees feedback inline.
+      const message = err instanceof Error ? err.message : "Unexpected error.";
       const errorMsg: ChatMessage = {
         id: uid("e"),
         role: "assistant",
         content: `Sorry, I couldn't get a response just now. ${message}`,
-        modelId,
+        modelId: activeModelId,
         createdAt: nowTime(),
       };
+      
       set((s) => ({
         messages: [...s.messages, errorMsg],
         isStreaming: false,
         error: message,
       }));
+
+      try {
+        await ChatStorage.appendMessage(activeConversationId!, errorMsg);
+      } catch(e) {}
     }
   },
 
-  clearConversation: () => set({ messages: [], error: null }),
-  newChat: () =>
-    set((s) => ({
-      messages: [],
-      error: null,
-      isStreaming: false,
-      newChatToken: s.newChatToken + 1,
-    })),
   clearError: () => set({ error: null }),
 }));

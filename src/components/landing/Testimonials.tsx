@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 export function Testimonials() {
   return (
     <section
-      className="relative py-20 sm:py-24 lg:py-28"
+      className="relative py-12"
       aria-labelledby="testimonials-heading"
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

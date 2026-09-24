@@ -8,51 +8,47 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { cn } from "@/lib/utils";
 
 export function FAQ() {
   return (
     <section
       id="faq"
-      className="relative scroll-mt-24 py-20 sm:py-24 lg:py-28"
+      className="relative scroll-mt-12 py-12 w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8"
       aria-labelledby="faq-heading"
     >
-      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-        <Reveal className="text-center">
-          <span className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
-            FAQ
-          </span>
-          <h2
-            id="faq-heading"
-            className="mt-3 text-balance text-3xl font-semibold tracking-tight text-foreground sm:text-4xl"
-          >
-            Frequently Asked Questions
-          </h2>
-          <p className="mt-4 text-pretty text-base leading-relaxed text-muted-foreground">
-            Everything you need to know about the redesigned EchoGPT.
-          </p>
-        </Reveal>
+      <Reveal className="mb-12 text-center">
+        <h2
+          id="faq-heading"
+          className="text-4xl sm:text-5xl font-extrabold tracking-tight text-stone-900 dark:text-white mb-6"
+        >
+          Frequently asked questions.
+        </h2>
+        <p className="text-lg text-stone-500 dark:text-stone-400 max-w-2xl mx-auto">
+          Everything you need to know about the product and billing. Can't find the answer you're looking for? Reach out to our team.
+        </p>
+      </Reveal>
 
-        <Reveal delay={0.05}>
-          <div className="mt-10 overflow-hidden rounded-2xl border border-border bg-card/70 px-5 shadow-soft sm:px-6">
-            <Accordion type="single" collapsible className="w-full">
-              {FAQ_ITEMS.map((item) => (
-                <AccordionItem
-                  key={item.id}
-                  value={item.id}
-                  className="border-b border-border last:border-b-0"
-                >
-                  <AccordionTrigger className="py-5 text-left text-[15px] font-medium text-foreground hover:no-underline">
-                    {item.question}
-                  </AccordionTrigger>
-                  <AccordionContent className="pb-5 text-sm leading-relaxed text-muted-foreground">
-                    {item.answer}
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          </div>
-        </Reveal>
-      </div>
+      <Reveal delay={0.05}>
+        <div className="mx-auto">
+          <Accordion type="single" collapsible className="w-full">
+            {FAQ_ITEMS.map((item) => (
+              <AccordionItem
+                key={item.id}
+                value={item.id}
+                className="border-b border-black/5 dark:border-white/5 last:border-b-0 px-2 sm:px-4"
+              >
+                <AccordionTrigger className="py-6 sm:py-8 text-left text-lg sm:text-xl font-bold text-stone-900 dark:text-stone-100 hover:text-violet-600 dark:hover:text-violet-400 hover:no-underline transition-colors group">
+                  {item.question}
+                </AccordionTrigger>
+                <AccordionContent className="pb-6 sm:pb-8 text-base leading-relaxed text-stone-500 dark:text-stone-400">
+                  {item.answer}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </div>
+      </Reveal>
     </section>
   );
 }

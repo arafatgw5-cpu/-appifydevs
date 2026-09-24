@@ -7,8 +7,6 @@ import { Check, Sparkles } from "lucide-react";
 import { PRICING_PLANS } from "@/data/pricing";
 import { useNavigation } from "@/store/navigation";
 import { Reveal, Stagger, StaggerItem } from "@/components/shared/Reveal";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 type Billing = "monthly" | "yearly";
@@ -20,187 +18,185 @@ export function Pricing() {
   return (
     <section
       id="pricing"
-      className="relative scroll-mt-24 border-y border-border bg-muted/30 py-20 sm:py-24 lg:py-28"
+      className="relative scroll-mt-12 py-12 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
       aria-labelledby="pricing-heading"
     >
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <Reveal className="mx-auto max-w-2xl text-center">
-          <span className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
-            Pricing
-          </span>
-          <h2
-            id="pricing-heading"
-            className="mt-3 text-balance text-3xl font-semibold tracking-tight text-foreground sm:text-4xl"
-          >
-            Simple Pricing That Scales With You
-          </h2>
-          <p className="mt-4 text-pretty text-base leading-relaxed text-muted-foreground">
-            Start free. Upgrade when you need more. Cancel anytime.
-          </p>
-        </Reveal>
-
-        {/* Billing toggle */}
-        <Reveal className="mt-8 flex justify-center">
-          <div
-            role="radiogroup"
-            aria-label="Billing period"
-            className="inline-flex items-center rounded-full border border-border bg-background p-1 shadow-soft"
-          >
-            {(["monthly", "yearly"] as const).map((b) => {
-              const active = billing === b;
-              return (
-                <button
-                  key={b}
-                  type="button"
-                  role="radio"
-                  aria-checked={active}
-                  onClick={() => setBilling(b)}
-                  className={cn(
-                    "relative rounded-full px-4 py-1.5 text-xs font-medium transition-colors",
-                    active
-                      ? "text-primary-foreground"
-                      : "text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  {active && (
-                    <motion.span
-                      layoutId="billing-pill"
-                      className="absolute inset-0 rounded-full bg-primary shadow-soft"
-                      transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-                    />
-                  )}
-                  <span className="relative">
-                    {b === "monthly" ? "Monthly" : "Yearly"}
-                    {b === "yearly" ? (
-                      <span
-                        className={cn(
-                          "ml-1.5 rounded-full px-1.5 py-0.5 text-[10px] font-semibold",
-                          active
-                            ? "bg-white/15 text-primary-foreground"
-                            : "bg-primary/10 text-primary",
-                        )}
-                      >
-                        -20%
-                      </span>
-                    ) : null}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </Reveal>
-
-        <Stagger
-          className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4"
-          gap={0.05}
+      <Reveal className="mx-auto max-w-2xl text-center mb-12">
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-violet-500/20 bg-violet-500/10 text-violet-600 dark:text-violet-400 mb-6">
+          <span className="text-xs font-bold uppercase tracking-widest">Plans</span>
+        </div>
+        <h2
+          id="pricing-heading"
+          className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-6 text-stone-900 dark:text-white"
         >
-          {PRICING_PLANS.map((plan) => {
-            const isPro = plan.highlighted;
-            const price =
-              billing === "monthly" ? plan.monthly : plan.yearly;
-            const isEnterprise = plan.id === "enterprise";
-            const isFree = plan.id === "free";
+          Simple pricing that scales with you.
+        </h2>
+        <p className="text-lg text-stone-500 dark:text-stone-400 max-w-xl mx-auto">
+          Start free. Upgrade when you need more power. Cancel anytime.
+        </p>
+      </Reveal>
 
+      {/* Billing toggle */}
+      <Reveal className="flex justify-center mb-12">
+        <div
+          role="radiogroup"
+          aria-label="Billing period"
+          className="inline-flex items-center rounded-full p-1 border shadow-sm dark:shadow-none bg-white dark:bg-[#15131F] border-black/5 dark:border-white/5"
+        >
+          {(["monthly", "yearly"] as const).map((b) => {
+            const active = billing === b;
             return (
-              <StaggerItem key={plan.id} className="h-full">
-                <motion.div
-                  whileHover={{ y: -2 }}
-                  transition={{ duration: 0.25 }}
-                  className={cn(
-                    "relative flex h-full flex-col rounded-2xl border bg-card/70 p-6 shadow-soft transition-shadow duration-300 hover:shadow-soft-lg",
-                    isPro
-                      ? "border-primary/40 ring-1 ring-primary/20 lg:-my-2 lg:py-8"
-                      : "border-border",
+              <button
+                key={b}
+                type="button"
+                role="radio"
+                aria-checked={active}
+                onClick={() => setBilling(b)}
+                className={cn(
+                  "relative rounded-full px-5 py-2 text-sm font-semibold transition-colors duration-300",
+                  active
+                    ? "text-white"
+                    : "text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-white"
+                )}
+              >
+                {active && (
+                  <motion.div
+                    layoutId="billing-pill"
+                    className="absolute inset-0 rounded-full bg-violet-600 shadow-sm"
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                  />
+                )}
+                <span className="relative z-10 flex items-center gap-2">
+                  {b === "monthly" ? "Monthly" : "Yearly"}
+                  {b === "yearly" && (
+                    <span
+                      className={cn(
+                        "rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
+                        active
+                          ? "bg-white/20 text-white"
+                          : "bg-violet-100 text-violet-600 dark:bg-violet-500/20 dark:text-violet-400"
+                      )}
+                    >
+                      Save 20%
+                    </span>
                   )}
-                >
-                  {plan.badge ? (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                      <Badge className="rounded-full bg-primary text-primary-foreground shadow-soft">
-                        <Sparkles className="h-3 w-3" />
-                        {plan.badge}
-                      </Badge>
-                    </div>
-                  ) : null}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </Reveal>
 
-                  <div className="flex items-baseline justify-between">
-                    <h3 className="text-lg font-semibold text-foreground">
-                      {plan.name}
-                    </h3>
+      <Stagger
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+        gap={0.1}
+      >
+        {PRICING_PLANS.map((plan) => {
+          const isPro = plan.highlighted;
+          const price = billing === "monthly" ? plan.monthly : plan.yearly;
+          const isEnterprise = plan.id === "enterprise";
+          const isFree = plan.id === "free";
+
+          return (
+            <StaggerItem key={plan.id} className="h-full">
+              <div
+                className={cn(
+                  "relative flex flex-col h-full rounded-3xl p-8 transition-all duration-300",
+                  isPro
+                    ? "bg-[#15131F] dark:bg-[#1C1A27] border-2 border-violet-500/50 shadow-2xl shadow-violet-500/20 lg:-mt-4 lg:mb-4"
+                    : "bg-white dark:bg-[#15131F] border border-black/5 dark:border-white/5 shadow-xl shadow-stone-200/40 dark:shadow-black/40 hover:-translate-y-1 hover:shadow-2xl"
+                )}
+              >
+                {isPro && (
+                  <div className="absolute inset-0 bg-gradient-to-b from-violet-500/10 to-transparent rounded-3xl pointer-events-none" />
+                )}
+
+                {plan.badge && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                    <div className="inline-flex items-center gap-1.5 rounded-full bg-violet-600 px-3 py-1 text-xs font-bold text-white shadow-md shadow-violet-500/30 uppercase tracking-widest">
+                      <Sparkles className="h-3 w-3" />
+                      {plan.badge}
+                    </div>
                   </div>
-                  <p className="mt-1 text-xs text-muted-foreground">
+                )}
+
+                <div className="relative z-10 flex-1 flex flex-col">
+                  <h3 className={cn("text-xl font-bold", isPro ? "text-white" : "text-stone-900 dark:text-white")}>
+                    {plan.name}
+                  </h3>
+                  <p className={cn("mt-2 text-sm leading-relaxed min-h-[40px]", isPro ? "text-stone-300" : "text-stone-500 dark:text-stone-400")}>
                     {plan.tagline}
                   </p>
 
-                  <div className="mt-5 flex h-12 items-baseline gap-1">
+                  <div className="mt-6 flex h-14 items-baseline gap-1">
                     {isEnterprise ? (
-                      <span className="text-3xl font-semibold tracking-tight text-foreground">
+                      <span className={cn("text-4xl font-extrabold tracking-tight", isPro ? "text-white" : "text-stone-900 dark:text-white")}>
                         Custom
                       </span>
                     ) : (
                       <>
-                        <span className="text-4xl font-semibold tracking-tight text-foreground">
-                          ${price}
+                        <span className="text-xl font-semibold text-stone-400">$</span>
+                        <span className={cn("text-5xl font-extrabold tracking-tight", isPro ? "text-white" : "text-stone-900 dark:text-white")}>
+                          {price}
                         </span>
-                        <span className="text-sm text-muted-foreground">
+                        <span className={cn("text-sm font-medium ml-1", isPro ? "text-stone-400" : "text-stone-500 dark:text-stone-500")}>
                           /mo
                         </span>
                       </>
                     )}
                   </div>
-                  <AnimatePresence mode="popLayout" initial={false}>
-                    <motion.p
-                      key={billing + plan.id}
-                      initial={{ opacity: 0, y: 4 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -4 }}
-                      transition={{ duration: 0.18 }}
-                      className="h-4 text-[11px] text-muted-foreground"
-                    >
-                      {isEnterprise
-                        ? "Tailored to your org"
-                        : isFree
-                          ? "Free forever"
-                          : billing === "yearly"
-                            ? "billed annually"
-                            : "billed monthly"}
-                    </motion.p>
-                  </AnimatePresence>
+                  
+                  <div className="h-4 mt-2">
+                    <AnimatePresence mode="popLayout" initial={false}>
+                      <motion.p
+                        key={billing + plan.id}
+                        initial={{ opacity: 0, y: -4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 4 }}
+                        transition={{ duration: 0.2 }}
+                        className={cn("text-xs font-medium", isPro ? "text-stone-400" : "text-stone-500")}
+                      >
+                        {isEnterprise
+                          ? "Tailored to your organization"
+                          : isFree
+                            ? "Free forever, no card required"
+                            : billing === "yearly"
+                              ? "Billed annually"
+                              : "Billed monthly"}
+                      </motion.p>
+                    </AnimatePresence>
+                  </div>
 
-                  <Button
-                    className="mt-5 w-full"
-                    variant={isPro ? "default" : "outline"}
+                  <button
                     onClick={() => setView("app")}
+                    className={cn(
+                      "mt-8 w-full py-3.5 px-4 rounded-xl font-bold text-sm transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2",
+                      isPro
+                        ? "bg-violet-600 text-white hover:bg-violet-700 shadow-lg shadow-violet-600/25 hover:-translate-y-0.5"
+                        : "bg-stone-100 text-stone-900 hover:bg-stone-200 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
+                    )}
                   >
                     {plan.cta}
-                  </Button>
+                  </button>
 
-                  <ul className="mt-6 flex flex-1 flex-col gap-2.5 border-t border-border pt-5 text-sm">
-                    {plan.features.map((f) => (
-                      <li key={f} className="flex items-start gap-2.5">
-                        <span
-                          className={cn(
-                            "mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full",
-                            isPro
-                              ? "bg-primary text-primary-foreground"
-                              : "bg-primary/10 text-primary",
-                          )}
-                        >
-                          <Check className="h-3 w-3" />
-                        </span>
-                        <span className="text-foreground/80">{f}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </motion.div>
-              </StaggerItem>
-            );
-          })}
-        </Stagger>
-
-        <p className="mt-8 text-center text-xs text-muted-foreground">
-          Demo pricing — values are placeholders for the redesign.
-        </p>
-      </div>
+                  <div className="mt-8 pt-8 border-t border-black/5 dark:border-white/5 flex-1">
+                    <ul className="flex flex-col gap-3">
+                      {plan.features.map((f) => (
+                        <li key={f} className="flex items-start gap-3">
+                          <div className={cn("mt-0.5 flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center", isPro ? "bg-violet-500/20" : "bg-violet-500/10")}>
+                            <Check className={cn("h-3 w-3", isPro ? "text-violet-400" : "text-violet-600 dark:text-violet-400")} />
+                          </div>
+                          <span className={cn("text-sm leading-snug", isPro ? "text-stone-200" : "text-stone-600 dark:text-stone-300")}>{f}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </StaggerItem>
+          );
+        })}
+      </Stagger>
     </section>
   );
 }

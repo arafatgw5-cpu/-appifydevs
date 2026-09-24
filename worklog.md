@@ -233,3 +233,28 @@ Stage Summary:
 - Dark mode works across all views and persists
 - All interactive states verified in browser
 - README.md written with full documentation
+
+---
+Task ID: AI-1
+Agent: main
+Task: Integrate real AI (z-ai-web-dev-sdk) into EchoGPT chat
+
+Work Log:
+- Created src/app/api/chat/route.ts — POST endpoint using z-ai-web-dev-sdk with model-aware system prompts (GPT-4o / Claude 3.5 / Gemini / Llama / DeepSeek / Mistral personas)
+- Updated src/store/chat.ts — added shared conversation state (messages, isStreaming, error), async sendMessage() that calls /api/chat, clearConversation(), and newChat() now also clears messages
+- Created src/components/web-app/TypingIndicator.tsx — animated typing indicator with the active model's avatar
+- Updated ChatInput.tsx — added disabled + loading props (spinner on send button, textarea disabled while streaming)
+- Updated ChatView.tsx — now reads from shared store, calls sendMessage, shows TypingIndicator while streaming, includes EmptyChat with starter prompts
+- Updated HomeView.tsx — onSubmit calls sendMessage + switches to chat; QuickActions now send real prompts; passes disabled/loading to ChatInput
+- Updated extension PromptInput.tsx — added disabled + loading props (spinner, disabled textarea)
+- Updated extension PopupScreen.tsx — uses shared store, calls real sendMessage, shows typing indicator, renders real AI responses
+
+Stage Summary:
+- EchoGPT now has REAL AI chat powered by z-ai-web-dev-sdk (backend) + shared Zustand store (frontend)
+- Verified end-to-end in browser:
+  * Web app home: typed question → API called → switched to chat → AI response rendered with markdown
+  * Multi-turn conversation: context preserved across turns (benefits → drawbacks follow-up)
+  * Model persona switching: selecting Claude 3.5 → AI identifies as "Claude 3.5 by Anthropic"
+  * Extension popup: typed prompt → real AI tagline response "Focus on what matters, effortlessly."
+- API: POST /api/chat returns 200 in ~500-1400ms; no console errors, no TypeScript errors, lint clean
+- Shared store means a conversation started in web app is visible in extension and vice versa

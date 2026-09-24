@@ -16,6 +16,7 @@ The redesign takes inspiration from the visual quality of Linear, Stripe, Vercel
 
 ## Features
 
+- **Real AI chat** powered by the z-ai-web-dev-sdk — the web app and extension popup both call a live `/api/chat` endpoint and render actual AI responses with markdown formatting, multi-turn context, and per-model personas
 - Modern, responsive **landing page** (hero, features, AI models, product tour, why-choose, pricing, testimonials, FAQ, CTA, footer)
 - Redesigned **web application** with sidebar navigation, chat workspace, history management, model gallery and settings
 - **Chrome extension concept** presented in a realistic 380px popup frame with four switchable screens
@@ -23,10 +24,11 @@ The redesign takes inspiration from the visual quality of Linear, Stripe, Vercel
 - Real **dark mode** with light / dark / system preference, persisted to `localStorage`
 - **Framer Motion** animations for entrances, scroll reveals, view transitions, accordion, mobile menu and the product preview switcher
 - Accessible UI: semantic sections, ARIA labels, keyboard-friendly controls, visible focus states, reduced-motion support
-- **Reusable component system** (Button, Card, Badge, Model Selector, Chat Message, Quick Action, Theme Toggle, etc.)
+- **Reusable component system** (Button, Card, Badge, Model Selector, Chat Message, Quick Action, Theme Toggle, Typing Indicator, etc.)
 - Centralized **data architecture** — models, features, pricing, testimonials and FAQ live in `src/data/*` and are consumed everywhere
-- **Interactive model selector** shared across the web app and extension
+- **Interactive model selector** shared across the web app and extension — each model gets a tailored system prompt so responses reflect the selected model's persona
 - **Interactive FAQ accordion**, pricing toggle, product preview switcher, settings toggles and selects
+- **Shared chat store** (Zustand) — a conversation started in the web app is visible in the extension popup and vice versa
 - TypeScript throughout, strict mode
 
 ## Technologies
@@ -136,12 +138,23 @@ Dark mode uses near-black backgrounds, dark cards, light text and muted borders,
 - **Dark mode** with light / dark / system preference persisted across sessions
 - **Responsive design** from 320px to 1920px with no horizontal scrolling
 - **Framer Motion** animations (entrances, scroll reveals, view transitions, accordion, mobile menu, product preview)
-- **Reusable component system** — shared UI primitives, model selector, chat message, quick actions
+- **Reusable component system** — shared UI primitives, model selector, chat message, quick actions, typing indicator
 - **Interactive model selector** shared across the web app and the Chrome extension
 - **Interactive FAQ** accordion with single-open behavior
 - **Product preview** with thumbnail-driven screen switching
 - **Extension concept UI** presented inside a realistic 380px popup frame
 - **Accessibility** — semantic sections, ARIA labels, keyboard navigation, visible focus, reduced-motion support
+
+## AI integration
+
+EchoGPT's chat is backed by a real AI service via the `z-ai-web-dev-sdk`:
+
+- **Backend** — `src/app/api/chat/route.ts` exposes a `POST /api/chat` endpoint that takes `{ messages, modelId }` and returns `{ content, modelId, model }`. It builds a model-aware system prompt so the selected AI model (GPT-4o, Claude 3.5, Gemini 1.5, Llama 3.1, DeepSeek, Mistral) gets its own persona.
+- **State** — `src/store/chat.ts` holds the live conversation (`messages`, `isStreaming`, `error`) and exposes an async `sendMessage(text)` action that calls the API, appends the user message immediately, shows a typing indicator, and streams the AI reply back into the store.
+- **Frontend** — the web app `ChatView` and the extension `PopupScreen` both read from the same store, so a conversation started in the web app is visible in the extension popup and vice versa. The composer disables itself and shows a spinner while the AI is responding.
+- **Formatting** — AI responses render with markdown (headings, bold, bullet points, fenced code blocks) via a lightweight inline renderer.
+
+No API keys are required — the SDK is pre-configured in the sandbox environment.
 
 ## Quality
 

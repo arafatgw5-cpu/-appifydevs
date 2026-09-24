@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ArrowUp, Globe } from "lucide-react";
+import { ArrowUp, Globe, Loader2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -15,6 +15,10 @@ interface PromptInputProps {
   className?: string;
   /** Autofocus on mount. */
   autoFocus?: boolean;
+  /** Disable the composer (e.g. while the AI is responding). */
+  disabled?: boolean;
+  /** Show a loading spinner on the send button. */
+  loading?: boolean;
 }
 
 /**
@@ -29,6 +33,8 @@ export function PromptInput({
   placeholder = "Ask anything...",
   className,
   autoFocus,
+  disabled = false,
+  loading = false,
 }: PromptInputProps) {
   const [internal, setInternal] = React.useState("");
   const [webSearch, setWebSearch] = React.useState(false);
@@ -45,6 +51,7 @@ export function PromptInput({
   };
 
   const handleSubmit = () => {
+    if (disabled) return;
     const trimmed = currentValue.trim();
     if (!trimmed) return;
     onSubmit?.(trimmed);
@@ -58,7 +65,7 @@ export function PromptInput({
     }
   };
 
-  const canSend = currentValue.trim().length > 0;
+  const canSend = currentValue.trim().length > 0 && !disabled;
 
   return (
     <div
@@ -73,9 +80,10 @@ export function PromptInput({
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
         autoFocus={autoFocus}
+        disabled={disabled}
         rows={2}
         aria-label="Chat message"
-        className="block w-full resize-none rounded-t-xl border-0 bg-transparent px-3 pt-2.5 text-sm leading-relaxed text-foreground placeholder:text-muted-foreground focus-visible:outline-none"
+        className="block w-full resize-none rounded-t-xl border-0 bg-transparent px-3 pt-2.5 text-sm leading-relaxed text-foreground placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60"
       />
       <div className="flex items-center justify-between gap-2 px-2.5 pb-2 pt-1">
         <button
@@ -97,16 +105,20 @@ export function PromptInput({
         <button
           type="button"
           onClick={handleSubmit}
-          disabled={!canSend}
+          disabled={!canSend || loading}
           aria-label="Send message"
           className={cn(
             "inline-flex h-7 w-7 items-center justify-center rounded-lg text-primary-foreground transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background",
-            canSend
+            canSend && !loading
               ? "bg-primary shadow-soft hover:bg-primary/90"
               : "cursor-not-allowed bg-muted text-muted-foreground",
           )}
         >
-          <ArrowUp className="h-3.5 w-3.5" />
+          {loading ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <ArrowUp className="h-3.5 w-3.5" />
+          )}
         </button>
       </div>
     </div>

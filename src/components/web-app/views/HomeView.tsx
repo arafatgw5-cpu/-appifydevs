@@ -13,6 +13,8 @@ import { PopularModels } from "@/components/web-app/PopularModels";
 export function HomeView() {
   const { setWebAppTab } = useNavigation();
   const newChatToken = useChatStore((s) => s.newChatToken);
+  const sendMessage = useChatStore((s) => s.sendMessage);
+  const isStreaming = useChatStore((s) => s.isStreaming);
   const [value, setValue] = React.useState("");
 
   // Reset the composer when the user requests a new chat from the sidebar.
@@ -26,6 +28,30 @@ export function HomeView() {
     if (hour < 18) return "Good afternoon";
     return "Good evening";
   }, []);
+
+  const handleSubmit = (text: string) => {
+    if (!text.trim()) return;
+    // Fire-and-forget: the store manages the streaming state and the
+    // conversation appears live in the chat view.
+    void sendMessage(text);
+    setWebAppTab("chat");
+  };
+
+  const handleQuickAction = (id: string) => {
+    const starters: Record<string, string> = {
+      summarize: "Summarize the following article in 5 concise bullet points:\n\n",
+      email: "Write a professional, friendly email about:\n\n",
+      image: "Describe a vivid image I could generate of:\n\n",
+      code: "Help me refactor and improve this code:\n\n```ts\n\n```",
+      translate: "Translate the following text into French and Spanish:\n\n",
+      more: "",
+    };
+    const prompt = starters[id] ?? "";
+    setValue(prompt);
+    if (prompt.trim()) {
+      handleSubmit(prompt);
+    }
+  };
 
   return (
     <div className="h-full overflow-y-auto">
@@ -56,9 +82,9 @@ export function HomeView() {
           <ChatInput
             value={value}
             onChange={setValue}
-            onSubmit={() => {
-              if (value.trim()) setWebAppTab("chat");
-            }}
+            onSubmit={handleSubmit}
+            disabled={isStreaming}
+            loading={isStreaming}
             size="lg"
             autoFocus
             placeholder="Ask anything..."
@@ -71,7 +97,7 @@ export function HomeView() {
           transition={{ duration: 0.45, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
           className="mt-5"
         >
-          <QuickActions onAction={() => setWebAppTab("chat")} />
+          <QuickActions onAction={handleQuickAction} />
         </motion.div>
 
         <motion.div

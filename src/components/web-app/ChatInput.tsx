@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ArrowUp, Brain, Globe, Paperclip } from "lucide-react";
+import { ArrowUp, Brain, Globe, Loader2, Paperclip } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import {
@@ -23,6 +23,10 @@ interface ChatInputProps {
   className?: string;
   /** Autofocus on mount. */
   autoFocus?: boolean;
+  /** Disable the composer (e.g. while the AI is responding). */
+  disabled?: boolean;
+  /** Show a loading spinner on the send button instead of the arrow. */
+  loading?: boolean;
 }
 
 /**
@@ -38,6 +42,8 @@ export function ChatInput({
   placeholder = "Ask anything...",
   className,
   autoFocus,
+  disabled = false,
+  loading = false,
 }: ChatInputProps) {
   const [internal, setInternal] = React.useState("");
   const [webSearch, setWebSearch] = React.useState(false);
@@ -55,6 +61,7 @@ export function ChatInput({
   };
 
   const handleSubmit = () => {
+    if (disabled) return;
     const trimmed = currentValue.trim();
     if (!trimmed) return;
     onSubmit?.(trimmed);
@@ -68,7 +75,7 @@ export function ChatInput({
     }
   };
 
-  const canSend = currentValue.trim().length > 0;
+  const canSend = currentValue.trim().length > 0 && !disabled;
   const isLarge = size === "lg";
 
   return (
@@ -84,10 +91,11 @@ export function ChatInput({
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
         autoFocus={autoFocus}
+        disabled={disabled}
         rows={isLarge ? 3 : 2}
         aria-label="Chat message"
         className={cn(
-          "block w-full resize-none rounded-t-2xl border-0 bg-transparent px-4 pt-3.5 text-sm leading-relaxed text-foreground placeholder:text-muted-foreground focus-visible:outline-none",
+          "block w-full resize-none rounded-t-2xl border-0 bg-transparent px-4 pt-3.5 text-sm leading-relaxed text-foreground placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60",
           isLarge ? "min-h-[88px] text-base" : "min-h-[64px]",
         )}
       />
@@ -156,19 +164,23 @@ export function ChatInput({
               <button
                 type="button"
                 onClick={handleSubmit}
-                disabled={!canSend}
+                disabled={!canSend || loading}
                 aria-label="Send message"
                 className={cn(
                   "inline-flex h-8 w-8 items-center justify-center rounded-lg text-primary-foreground transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-                  canSend
+                  canSend && !loading
                     ? "bg-primary shadow-soft hover:bg-primary/90"
                     : "cursor-not-allowed bg-muted text-muted-foreground",
                 )}
               >
-                <ArrowUp className="h-4 w-4" />
+                {loading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <ArrowUp className="h-4 w-4" />
+                )}
               </button>
             </TooltipTrigger>
-            <TooltipContent>Send</TooltipContent>
+            <TooltipContent>{loading ? "Thinking..." : "Send"}</TooltipContent>
           </Tooltip>
         </div>
       </div>

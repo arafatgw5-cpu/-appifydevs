@@ -4,6 +4,7 @@ import { create } from "zustand";
 import { DEFAULT_MODEL_ID } from "@/data/models";
 import type { ChatMessage } from "@/types/chat";
 import { ChatStorage, ConversationMeta } from "./chatStorage";
+import { toast } from "sonner";
 
 interface ChatState {
   activeModelId: string;
@@ -68,6 +69,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       }
     } catch (e) {
       console.error(e);
+      toast.error("Failed to initialize chat store", { description: "Could not load conversations from local storage." });
     }
   },
 
@@ -77,7 +79,9 @@ export const useChatStore = create<ChatState>((set, get) => ({
       const messages = await ChatStorage.getMessages(id);
       set({ activeConversationId: id, messages, isStreaming: false, error: null });
     } catch (e) {
-      set({ error: "Failed to load conversation.", isStreaming: false });
+      const errMsg = "Failed to load conversation.";
+      set({ error: errMsg, isStreaming: false });
+      toast.error(errMsg);
     }
   },
 
@@ -157,7 +161,9 @@ export const useChatStore = create<ChatState>((set, get) => ({
         conversations = [newMeta, ...conversations];
         set({ activeConversationId, conversations });
       } catch (e) {
-        set({ error: "Storage error. Could not create conversation." });
+        const errMsg = "Storage error. Could not create conversation.";
+        set({ error: errMsg });
+        toast.error(errMsg);
         return;
       }
     }
@@ -193,7 +199,9 @@ export const useChatStore = create<ChatState>((set, get) => ({
       }
     } catch (e: any) {
       console.error(e);
-      set({ error: "Warning: Failed to save message to local history. Storage may be full." });
+      const errMsg = "Warning: Failed to save message to local history. Storage may be full.";
+      set({ error: errMsg });
+      toast.error(errMsg);
     }
 
     // 3. Fetch AI Response
@@ -249,7 +257,9 @@ export const useChatStore = create<ChatState>((set, get) => ({
         });
       } catch (e: any) {
         console.error(e);
-        set({ error: "Warning: Failed to save message to local history. Storage may be full." });
+        const errMsg = "Warning: Failed to save message to local history. Storage may be full.";
+        set({ error: errMsg });
+        toast.error(errMsg);
       }
 
     } catch (err: unknown) {
@@ -267,6 +277,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
         isStreaming: false,
         error: message,
       }));
+      toast.error("Failed to get response", { description: message });
 
       try {
         await ChatStorage.appendMessage(activeConversationId!, errorMsg);

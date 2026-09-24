@@ -10,7 +10,7 @@ import { FEATURES } from "@/data/features";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Reveal, Stagger, StaggerItem } from "@/components/shared/Reveal";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { ExtensionNav } from "@/components/extension/ExtensionNav";
 import { PopupScreen } from "@/components/extension/screens/PopupScreen";
 import { HistoryScreen } from "@/components/extension/screens/HistoryScreen";
@@ -59,11 +59,9 @@ const heroItem = {
  */
 export function ExtensionExperience() {
   const { extensionTab, setView } = useNavigation();
-  const { toast } = useToast();
 
   const handleAddToChrome = () => {
-    toast({
-      title: "Demo only",
+    toast.info("Demo only", {
       description: "EchoGPT for Chrome isn't published yet — this is a concept.",
     });
   };

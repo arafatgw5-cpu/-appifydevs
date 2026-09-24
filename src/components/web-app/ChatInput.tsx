@@ -4,6 +4,7 @@ import * as React from "react";
 import { useRef, useState, useEffect, useCallback } from "react";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 // ----------------------------------------------------------------------
 // Transition Physics
@@ -524,6 +525,7 @@ export const ChatInput = React.forwardRef<HTMLDivElement, ChatInputProps>(
 
           recognition.onerror = (e: any) => {
             console.error("Speech recognition error", e);
+            toast.error("Speech recognition failed", { description: "Please ensure your microphone is connected and permissions are granted." });
             stopRecording();
           };
 

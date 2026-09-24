@@ -6,6 +6,16 @@ import { MessageSquare, Pin, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 import { useChatStore } from "@/store/chat";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface RecentChatsProps {
   /** Limit the number of chats shown (default: all). */
@@ -28,6 +38,8 @@ export function RecentChats({
 }: RecentChatsProps) {
   const storeConversations = useChatStore(s => s.conversations);
   const deleteConversation = useChatStore(s => s.deleteConversation);
+  
+  const [deleteConfirmId, setDeleteConfirmId] = React.useState<string | null>(null);
   
   const chats = React.useMemo(() => {
     // Sort logic by updatedAt is already handled in store/db, but we can double check
@@ -71,9 +83,7 @@ export function RecentChats({
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
-                  if (confirm("Are you sure you want to delete this conversation?")) {
-                    deleteConversation(c.id);
-                  }
+                  setDeleteConfirmId(c.id);
                 }}
                 className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
                 aria-label="Delete chat"
@@ -84,6 +94,22 @@ export function RecentChats({
           </div>
         </li>
       ))}
+      <AlertDialog open={!!deleteConfirmId} onOpenChange={(open) => !open && setDeleteConfirmId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete conversation?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this conversation? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => { if (deleteConfirmId) deleteConversation(deleteConfirmId); }} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </ul>
   );
 

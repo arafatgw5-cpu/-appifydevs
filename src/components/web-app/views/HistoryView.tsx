@@ -24,6 +24,16 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface HistoryViewProps {
   /** Search string from the topbar. */
@@ -62,6 +72,9 @@ export function HistoryView({ search, onSearchChange }: HistoryViewProps) {
   const [renamingId, setRenamingId] = React.useState<string | null>(null);
   const [renameDraft, setRenameDraft] = React.useState("");
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
+
+  const [deleteConfirmId, setDeleteConfirmId] = React.useState<string | null>(null);
+  const [isClearAllOpen, setIsClearAllOpen] = React.useState(false);
 
   React.useEffect(() => {
     if (storeConversations.length > 0 && !selectedId) {
@@ -127,17 +140,13 @@ export function HistoryView({ search, onSearchChange }: HistoryViewProps) {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm("Are you sure you want to delete this conversation?")) {
-      deleteConversation(id);
-      if (selectedId === id) setSelectedId(null);
-    }
+    deleteConversation(id);
+    if (selectedId === id) setSelectedId(null);
   };
 
   const handleClearAll = () => {
-    if (confirm("Are you sure you want to delete ALL conversations? This cannot be undone.")) {
-      clearAllHistory();
-      setSelectedId(null);
-    }
+    clearAllHistory();
+    setSelectedId(null);
   };
 
   return (
@@ -182,7 +191,7 @@ export function HistoryView({ search, onSearchChange }: HistoryViewProps) {
           <Button 
             variant="ghost" 
             size="sm" 
-            onClick={handleClearAll}
+            onClick={() => setIsClearAllOpen(true)}
             className="text-red-500 hover:text-red-600 hover:bg-red-500/10 shrink-0 ml-4"
           >
             Clear All
@@ -332,7 +341,7 @@ export function HistoryView({ search, onSearchChange }: HistoryViewProps) {
                                     aria-label="Delete conversation"
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      handleDelete(c.id);
+                                      setDeleteConfirmId(c.id);
                                     }}
                                     className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
                                   >
@@ -423,7 +432,39 @@ export function HistoryView({ search, onSearchChange }: HistoryViewProps) {
         </div>
       </div>
 
+      <AlertDialog open={!!deleteConfirmId} onOpenChange={(open) => !open && setDeleteConfirmId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete conversation?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this conversation? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => { if (deleteConfirmId) handleDelete(deleteConfirmId); }} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
+      <AlertDialog open={isClearAllOpen} onOpenChange={setIsClearAllOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Clear all history?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete ALL conversations? This cannot be undone and will clear everything.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => { handleClearAll(); setIsClearAllOpen(false); }} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Clear All
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -37,9 +37,6 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "EchoGPT" }],
   metadataBase: new URL(siteUrl),
-  icons: {
-    icon: "/logo.svg",
-  },
   openGraph: {
     title: "EchoGPT — All Your AI Models in One Place",
     description:

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { ArrowRight, Moon, Sun, Sparkles, MessageSquare, Terminal, Zap, Check, ChevronDown, Wand2, Image as ImageIcon, Headphones, FileText, LayoutTemplate, PenTool } from "lucide-react";
 import { useNavigation } from "@/store/navigation";
-import { useTheme } from "next-themes";
+import { useTheme } from "@/components/theme/theme-provider";
 import { Logo } from "@/components/shared/Logo";
 import { Features } from "./Features";
 import { AIModels } from "./AIModels";
@@ -25,14 +25,14 @@ export function LandingPage() {
   const { setView } = useNavigation();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { theme, setTheme, systemTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const isDark = mounted && (theme === "dark" || (theme === "system" && systemTheme === "dark"));
+  const isDark = mounted && resolvedTheme === "dark";
 
   useEffect(() => {
     const handleScroll = () => {
